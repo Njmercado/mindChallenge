@@ -1,26 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './schemas/user.schema';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { ResponseUserDto } from './dto/response-user.dto';
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+  ) {}
+
+  async create(createUserDto: CreateUserDto) {
+    return this.userModel.create(createUserDto);
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll(): Promise<ResponseUserDto[]> {
+    return this.userModel.find({});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  // TODO: look for why i cant return de ResponseUserDto
+  async findOne(id: number): Promise<any> {
+    return this.userModel.find({_id: id});
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<ResponseUserDto> {
+    return this.userModel.findByIdAndUpdate(id, updateUserDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number) {
+    return this.userModel.deleteOne({_id: id});
   }
 }
