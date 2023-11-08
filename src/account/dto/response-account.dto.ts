@@ -1,4 +1,4 @@
-import { Group } from "src/group/entities/group.entity";
+import { Team } from "src/team/entities/team.entity";
 import { User } from "src/user/schemas/user.schema";
 
 export class ResponseAccountDto {
@@ -6,5 +6,5 @@ export class ResponseAccountDto {
   name: string;
   clientName: string;
   responsable: User;
-  groups: Group[];
+  teams: Team[];
 }
