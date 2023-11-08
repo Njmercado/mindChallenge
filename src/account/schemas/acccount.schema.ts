@@ -15,7 +15,7 @@ export class Account {
   responsable: {type: mongoose.Schema.Types.ObjectId, ref: 'User'};
 
   @Prop({required: true})
-  groups: {type: mongoose.Schema.Types.ObjectId[], ref: 'Group'};
+  teams: {type: mongoose.Schema.Types.ObjectId[], ref: 'Team'};
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);
