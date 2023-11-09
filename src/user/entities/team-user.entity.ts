@@ -9,7 +9,7 @@ export class TeamUser {
 
   @Prop({ref: 'User'})
   id: mongoose.Types.ObjectId;
-  addedAt: Date = new Date();
-  outAt?: Date;
+  addedAt: number = Date.now();
+  outAt?: number;
   available: { type: boolean, default: true };
 }
