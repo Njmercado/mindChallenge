@@ -1,1 +1,4 @@
-export class CreateTeamDto {}
+export class CreateTeamDto {
+  users: string[];
+  name: string;
+}
