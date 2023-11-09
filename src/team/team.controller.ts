@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
@@ -33,5 +33,14 @@ export class TeamController {
     @Body() filter: FilterTeamDto,
   ) {
     return this.teamService.filter(filter);
+  }
+
+  @Put('/move/:userId/:fromTeam/:toTeam')
+  move(
+    @Param('userId') userId: string,
+    @Param('fromTeam') fromTeam: string,
+    @Param('toTeam') toTeam: string,
+  ) {
+    return this.teamService.move(userId, fromTeam, toTeam);
   }
 }
