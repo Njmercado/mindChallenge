@@ -31,8 +31,12 @@ export class TeamRepository {
     return this.teamModel.findById(id).exec();
   }
 
-  async updateTeam(teamId: string, updateTeamDto: UpdateTeamDto) {
+  async updateTeam(teamId: string, updateTeamDto: UpdateTeamDto): Promise<{
+    message: string,
+    code: number
+  }> {
 
+    let message: string = "";
     const team = await this.teamModel.findById(teamId).exec();
     const {users, name} = updateTeamDto;
     //TODO: split userIds between added and deleted ones for events
@@ -44,8 +48,6 @@ export class TeamRepository {
       const usersToAdd = users.filter( user => !isUserIncluded(user));
       const usersToDelete = team.users.filter(user => !users.includes(user.toString()));
       
-      console.log([usersToDelete, usersToAdd]);
-
       const responseDeletedUsers = usersToDelete.map(user => this.quitUserFromTeam(user.toString(), teamId));
       const responseAddedUsers = usersToAdd.map(user => this.addUserToTeam(user, teamId));
     }
@@ -56,7 +58,10 @@ export class TeamRepository {
 
     await team.save();
 
-    return team;
+    return {
+      message: `Team ${team.name} udpated successfully`,
+      code: 200,
+    };
   }
 
   async removeTeam(id: string) {
