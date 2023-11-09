@@ -1,7 +1,10 @@
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateTeamDto } from './dto/create-team.dto';
+import { FilterTeamDto } from './dto/filter-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { TeamRepository } from './repository/mongo/team.repository.mongo';
 
+@Injectable()
 export class TeamService {
 
   constructor(
@@ -22,5 +25,9 @@ export class TeamService {
 
   remove(id: string) {
     return this.teamRepository.removeTeam(id); 
+  }
+
+  filter(filters: FilterTeamDto) {
+    return this.teamRepository.filterTeam(filters);
   }
 }
