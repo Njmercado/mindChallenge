@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { FilterTeamDto } from './dto/filter-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
@@ -29,5 +29,9 @@ export class TeamService {
 
   filter(filters: FilterTeamDto) {
     return this.teamRepository.filterTeam(filters);
+  }
+
+  move(userId: string, fromTeam: string, toTeam: string) {
+    return this.teamRepository.moveUser(userId, fromTeam, toTeam);
   }
 }
