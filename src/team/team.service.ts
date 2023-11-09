@@ -12,19 +12,15 @@ export class TeamService {
     return this.teamRepository.createTeam(createTeamDto);
   }
 
-  async findAll() {
-    return null;
-  }
-
   async findOne(id: string) {
     return this.teamRepository.findOneTeam(id);
   }
 
   async update(teamId: string, updateTeamDto: UpdateTeamDto) {
-    return this.teamRepository.updateTeam(teamId, updateTeamDto.users);
+    return this.teamRepository.updateTeam(teamId, updateTeamDto);
   }
 
   remove(id: string) {
-    return `This action removes a #${id} team`;
+    return this.teamRepository.removeTeam(id); 
   }
 }
