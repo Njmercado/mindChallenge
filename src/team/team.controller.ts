@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { TeamService } from './team.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
+import { FilterTeamDto } from './dto/filter-team.dto';
 
 @Controller('team')
 export class TeamController {
@@ -25,5 +26,12 @@ export class TeamController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.teamService.remove(id);
+  }
+
+  @Get('/filter')
+  filter(
+    @Body() filter: FilterTeamDto,
+  ) {
+    return this.teamService.filter(filter);
   }
 }
