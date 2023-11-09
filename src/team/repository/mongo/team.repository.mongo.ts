@@ -4,6 +4,7 @@ import { Model } from "mongoose";
 import { TeamUser } from "src/user/entities/team-user.entity";
 import { HelperGeneral } from "src/helpers/helper.general";
 import { CreateTeamDto } from "src/team/dto/create-team.dto";
+import { UpdateTeamDto } from "src/team/dto/update-team.dto";
 
 export class TeamRepository {
   constructor(
@@ -36,12 +37,17 @@ export class TeamRepository {
     return this.teamModel.findById(id).exec();
   }
 
-  async updateTeam(teamId: string, userIds: string[]) {
+  async updateTeam(teamId: string, updateTeamDto: UpdateTeamDto) {
     //TODO: split userIds between added and deleted ones for events
-    const userIdsToMongoId = userIds.map(userId => this.helper.toMongoID(userId));
+    const userIdsToMongoId = updateTeamDto.users.map(userId => this.helper.toMongoID(userId));
+    const update = {...updateTeamDto, userIdsToMongoId}
 
-    return await this.teamModel.findByIdAndUpdate(teamId, { $set: { users: userIdsToMongoId } });
+    return await this.teamModel.findByIdAndUpdate(teamId, update);
   }
 
-
+  async removeTeam(id: string) {
+    // TODO: create an event to define when a user was removed from a team
+    // TODO: create event for when a user were quit from the team
+    return this.teamModel.findByIdAndRemove(id).exec()
+  }
 }
