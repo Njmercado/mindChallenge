@@ -1,9 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, Query, UseGuards } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { FilterTeamDto } from './dto/filter-team.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/decorator/roles.decotaror';
+import { Role } from 'src/user/entities/role.enum';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
+@UseGuards(AuthGuard, RolesGuard)
+@Roles([Role.ADMIN, Role.SUPER_ADMIN])
 @Controller('team')
 export class TeamController {
   constructor(private readonly teamService: TeamService) {}
