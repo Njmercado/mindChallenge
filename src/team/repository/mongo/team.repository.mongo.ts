@@ -1,13 +1,13 @@
 import { InjectModel } from "@nestjs/mongoose";
-import { Team } from "../../schemas/team.schema";
-import { Model } from "mongoose";
-import { TeamUser } from "src/user/entities/team-user.entity";
+import { Team, TeamDocument } from "../../schemas/team.schema";
+import mongoose, { Document, Model } from "mongoose";
 import { HelperGeneral } from "src/helpers/helper.general";
 import { CreateTeamDto } from "src/team/dto/create-team.dto";
 import { UpdateTeamDto } from "src/team/dto/update-team.dto";
 import { FilterTeamDto } from "src/team/dto/filter-team.dto";
 import { Injectable } from "@nestjs/common";
 import { User } from "src/user/schemas/user.schema";
+import { TeamAction } from "src/team-moves/entities/team-action.enum";
 
 @Injectable()
 export class TeamRepository {
@@ -39,17 +39,25 @@ export class TeamRepository {
     let message: string = "";
     const team = await this.teamModel.findById(teamId).exec();
     const {users, name} = updateTeamDto;
-    //TODO: split userIds between added and deleted ones for events
-
     if(users) {
-      const isUserIncluded = user => team.users.includes(
-        this.helper.toMongoID(user)
-      ); 
-      const usersToAdd = users.filter( user => !isUserIncluded(user));
-      const usersToDelete = team.users.filter(user => !users.includes(user.toString()));
-      
-      const responseDeletedUsers = usersToDelete.map(user => this.quitUserFromTeam(user.toString(), teamId));
-      const responseAddedUsers = usersToAdd.map(user => this.addUserToTeam(user, teamId));
+      const usersToAdd = users.filter(
+        user => !team.users.includes(
+          this.helper.toMongoID(user)
+        )
+      );
+      const usersToDelete = team.users.filter(
+        user => !users.includes(
+          user.toString()
+        )
+      );
+
+      for(const user of usersToDelete) {
+        await this.deleteUserFromTeam(user.toString(), team);
+      }
+
+      for(const user of usersToAdd) {
+        await this.addUserToTeam(user, team)
+      }
     }
 
     if(name) {
@@ -65,9 +73,7 @@ export class TeamRepository {
   }
 
   async removeTeam(id: string) {
-    // TODO: create an event to define when a user was removed from a team
-    // TODO: create event for when a user were quit from the team
-    return this.teamModel.findByIdAndRemove(id).exec()
+    return this.teamModel.findByIdAndUpdate(id, { $set: { disabled: true }}).exec()
   }
 
   async moveUser(userId: string, fromTeam: string, toTeam: string): Promise<{
@@ -88,16 +94,12 @@ export class TeamRepository {
         sourceTeam.users.indexOf(this.helper.toMongoID(userId)),
         1
       )
-      // TODO: add event of quit user from team
-
       targetTeam.users.push(this.helper.toMongoID(userId));
-      // TODO: add event of adding user to team
-
       user.hasAssignedTeam = true;
 
       sourceTeam.save();
       targetTeam.save();
-      user.save();
+      await user.save();
 
       return {
         message: 'User moved successfully',
@@ -106,12 +108,11 @@ export class TeamRepository {
     }
   }
 
-  private async quitUserFromTeam(userId: string, teamId: string): Promise<{
+  private async deleteUserFromTeam(userId: string, team: TeamDocument): Promise<{
     message: string,
-    code: number
+    code: number,
+    data: any,
   }> {
-    const team = await this.teamModel.findById(teamId).exec();
-
     const userBelongsToTeam = () => team.users.includes(this.helper.toMongoID(userId));
 
     if(userBelongsToTeam()) {
@@ -119,8 +120,6 @@ export class TeamRepository {
         team.users.indexOf(this.helper.toMongoID(userId)),
         1
       )
-      
-      await team.save();
 
       this.updateUserStatus(userId, false);
 
@@ -128,17 +127,19 @@ export class TeamRepository {
 
       return {
         message: `User ${userId} deleted from team ${team.name}`,
-        code: 200
+        code: 200,
+        data: userId
       }
     } else {
       return {
         message: `User ${userId} does not exist in team ${team.name}`,
         code: 404,
+        data: null,
       }
     }
   }
 
-  private async addUserToTeam(userId: string, teamId: string): Promise<{
+  private async addUserToTeam(userId: string, team: TeamDocument): Promise<{
     message: string,
     code: number
   }> {
@@ -152,30 +153,14 @@ export class TeamRepository {
         code: 404,
       }
     } else {
-      const team = await this.teamModel.findById(teamId);
       team.users.push(this.helper.toMongoID(userId));
       user.hasAssignedTeam = true;
 
-      team.save();
-      user.save();
+      await user.save();
     }
   }
 
   async filterTeam(filters: FilterTeamDto) {
-
-    const {id, name, userName, addedAt, outAt} = filters;
-
-    const query = this.teamModel.find();
-
-    if(name) {
-
-    }
-
-    const response = await this.teamModel.find({
-      name: { $regex: filters.name, $options: 'i' },
-    }).exec();
-
-    return response;
   }
 
   private updateUsersStatuses(ids: string[], states: boolean[]) {
@@ -184,6 +169,7 @@ export class TeamRepository {
     });
   }
 
+  // TODO: Move this to user service
   private updateUserStatus(id: string, state: boolean) {
     this.userModel.findByIdAndUpdate(id, { $set: { hasAssignedTeam: state }}).exec();
   }
