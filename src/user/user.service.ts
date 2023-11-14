@@ -17,24 +17,27 @@ export class UserService {
     return this.userModel.create(createUserDto);
   }
 
-  async findAll(): Promise<ResponseUserDto[]> {
-    return this.userModel.find({});
+  async findAll(): Promise<any[]> {
+    return this.userModel.find({}).exec();
   }
 
-  // TODO: look for why i cant return de ResponseUserDto
-  async findOne(id: number): Promise<any> {
-    return this.userModel.find({_id: id}).exec();
+  async findOne(id: string): Promise<any> {
+    return this.userModel.findById({_id: id})
+      .select('-password')
+      .exec();
   }
 
   async findOneByEmail(email: string): Promise<UserDocument> {
-    return await this.userModel.findOne({ email }).exec();
+    return this.userModel.findOne({ email })
+      .select('-password')
+      .exec();
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<ResponseUserDto> {
-    return this.userModel.findByIdAndUpdate(id, updateUserDto);
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<any> {
+    return this.userModel.findByIdAndUpdate(id, updateUserDto).exec();
   }
 
-  async remove(id: number) {
-    return this.userModel.deleteOne({_id: id});
+  async remove(id: string) {
+    return this.userModel.deleteOne({_id: id}).exec();
   }
 }
