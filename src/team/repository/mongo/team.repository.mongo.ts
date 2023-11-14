@@ -73,7 +73,19 @@ export class TeamRepository {
   }
 
   async removeTeam(id: string) {
-    return this.teamModel.findByIdAndUpdate(id, { $set: { disabled: true }}).exec()
+    const response = await this.teamModel.findByIdAndUpdate(
+      id,
+      {
+        $set: { disabled: true }
+      }
+    ).exec()
+
+    if(response) {
+      const team = await this.teamModel.findById(id).exec();
+      for(const user of team.users) {
+        await this.deleteUserFromTeam(user.toString(), team);
+      }
+    }
   }
 
   async moveUser(userId: string, fromTeam: string, toTeam: string): Promise<{
@@ -160,7 +172,34 @@ export class TeamRepository {
     }
   }
 
+  // TODO: Add pagination
   async filterTeam(filters: FilterTeamDto) {
+    const result = await this.teamModel.find({
+      ...( filters.id && {_id: this.helper.toMongoID(filters.id)} ),
+      ...( filters.name && { name: { $regex: filters.name } }),
+      ...(
+          ( filters.action || filters.startAt || filters.endAt ) && 
+          {
+            moves: {
+              $elemMatch: {
+                ...( !filters.action && {
+                  addedAt: { $gte: filters.startAt, $lte: filters.endAt }
+                }),
+                ...( filters.action && { action: filters.action }),
+                ...( filters.action === TeamAction.ADD && {
+                  addedAt: { $gte: filters.startAt, $lte: filters.endAt }
+                }),
+                ...( filters.action === TeamAction.DELETE && {
+                  outAt: { $gte: filters.startAt, $lte: filters.endAt }
+                })
+              }
+            }
+          }
+        ),
+    })
+    .exec();
+
+    return result;
   }
 
   private updateUsersStatuses(ids: string[], states: boolean[]) {
