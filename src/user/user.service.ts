@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './schemas/user.schema';
+import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { ResponseUserDto } from './dto/response-user.dto';
@@ -23,7 +23,11 @@ export class UserService {
 
   // TODO: look for why i cant return de ResponseUserDto
   async findOne(id: number): Promise<any> {
-    return this.userModel.find({_id: id});
+    return this.userModel.find({_id: id}).exec();
+  }
+
+  async findOneByEmail(email: string): Promise<UserDocument> {
+    return await this.userModel.findOne({ email }).exec();
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<ResponseUserDto> {
