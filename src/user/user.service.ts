@@ -29,7 +29,6 @@ export class UserService {
 
   async findOneByEmail(email: string): Promise<UserDocument> {
     return this.userModel.findOne({ email })
-      .select('-password')
       .exec();
   }
 
