@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import { Role } from '../entities/role.enum';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -17,6 +18,9 @@ export class User {
 
   @Prop({default: false})
   hasAssignedTeam: boolean;
+
+  @Prop({default: Role.USER, enum: Role })
+  role: Role;
 
   comparePassword: Function;
 }
