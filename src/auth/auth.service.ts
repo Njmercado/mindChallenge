@@ -15,7 +15,10 @@ export class AuthService {
     const user = await this.userService.findOneByEmail(email);
     const isNotValid = !user || !(await bcrypt.compare(password, user.password));
     if(isNotValid) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException({
+        message: "Invalid credentials, please try again",
+        statusCode: 401,
+      });
     }
 
     const payload = { sub: user._id.toString(), email: user.email, password: user.password, role: user.role };
