@@ -1,13 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { TeamAction } from 'src/team-moves/entities/team-action.enum';
-import { TeamMove, TeamMoveSchema } from 'src/team-moves/schemas/team-moves.schema';
+import { TeamMove } from 'src/team-moves/schemas/team-moves.schema';
 
 export type TeamDocument = HydratedDocument<Team>;
 
 @Schema()
 export class Team {
-  @Prop({ required: true, ref: 'User' })
+  @Prop({ ref: 'User' })
   users: Array<mongoose.Types.ObjectId>; 
 
   @Prop({required: true})
