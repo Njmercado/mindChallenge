@@ -3,6 +3,7 @@ import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { TeamRepository } from './repository/mongo/team.repository.mongo';
 import { FilterTeamMovementsDto } from 'src/team-moves/dto/filter-team-movement.dto';
+import { FilterTeamDto } from './dto/filter-team.dto';
 
 @Injectable()
 export class TeamService {
@@ -25,6 +26,10 @@ export class TeamService {
 
   remove(id: string) {
     return this.teamRepository.removeTeam(id); 
+  }
+
+  filter(filters: FilterTeamDto) {
+    return this.teamRepository.filter(filters);
   }
 
   filterTeamMovements(filters: FilterTeamMovementsDto) {

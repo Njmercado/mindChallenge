@@ -8,6 +8,7 @@ import { Roles } from 'src/auth/decorator/roles.decotaror';
 import { Role } from 'src/user/entities/role.enum';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { FilterTeamMovementsDto } from 'src/team-moves/dto/filter-team-movement.dto';
+import { FilterTeamDto } from './dto/filter-team.dto';
 
 @ApiBearerAuth('access-token')
 @UseGuards(AuthGuard, RolesGuard)
@@ -29,6 +30,13 @@ export class TeamController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.teamService.remove(id);
+  }
+
+  @Get('/filter')
+  filter(
+    @Query() filter: FilterTeamDto,
+  ) {
+    return this.teamService.filter(filter);
   }
 
   @Get('/filter-movements')
