@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -7,6 +7,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Role } from './entities/role.enum';
 import { Roles } from 'src/auth/decorator/roles.decotaror';
+import { FilterUserDto } from './dto/filter-user.dto';
 
 @ApiBearerAuth('access-token')
 @UseGuards(AuthGuard, RolesGuard)
@@ -31,6 +32,14 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Roles([Role.ADMIN, Role.SUPER_ADMIN])
+  @Get('/filter')
+  filter(
+    @Query() filters: FilterUserDto
+  ) {
+    return this.userService.filter(filters);
+  }
+
   @Roles([Role.ADMIN, Role.SUPER_ADMIN, Role.USER])
   @Get(':id')
   findOne(
@@ -47,7 +56,7 @@ export class UserController {
     @Body() updateUserDto: UpdateUserDto,
     @Request() request: { user: any}
   ) {
-    return this.userService.update(id, updateUserDto);
+    return this.userService.update(id, updateUserDto, request.user);
   }
 
   @Roles([Role.SUPER_ADMIN])
