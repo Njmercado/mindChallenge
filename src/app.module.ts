@@ -5,7 +5,6 @@ import { UserModule } from './user/user.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AccountModule } from './account/account.module';
 import { TeamModule } from './team/team.module';
-import { TeamMovesModule } from './team-moves/team-moves.module';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
@@ -14,7 +13,6 @@ import { AuthModule } from './auth/auth.module';
     MongooseModule.forRoot('mongodb://localhost/administrator-db-api'),
     AccountModule,
     TeamModule,
-    TeamMovesModule,
     AuthModule,
   ],
   controllers: [AppController],
