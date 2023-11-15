@@ -1,13 +1,12 @@
 import { InjectModel } from "@nestjs/mongoose";
 import { Team, TeamDocument } from "../../schemas/team.schema";
-import mongoose, { Document, Model } from "mongoose";
+import { Model } from "mongoose";
 import { HelperGeneral } from "src/helpers/helper.general";
 import { CreateTeamDto } from "src/team/dto/create-team.dto";
 import { UpdateTeamDto } from "src/team/dto/update-team.dto";
-import { FilterTeamDto } from "src/team/dto/filter-team.dto";
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { User } from "src/user/schemas/user.schema";
-import { TeamAction } from "src/team-moves/entities/team-action.enum";
+import { FilterTeamMovementsDto } from "src/team-moves/dto/filter-team-movement.dto";
 
 @Injectable()
 export class TeamRepository {
@@ -173,33 +172,36 @@ export class TeamRepository {
   }
 
   // TODO: Add pagination
-  async filterTeam(filters: FilterTeamDto) {
-    const result = await this.teamModel.find({
-      ...( filters.id && {_id: this.helper.toMongoID(filters.id)} ),
-      ...( filters.name && { name: { $regex: filters.name } }),
-      ...(
-          ( filters.action || filters.startAt || filters.endAt ) && 
-          {
-            moves: {
-              $elemMatch: {
-                ...( !filters.action && {
-                  addedAt: { $gte: filters.startAt, $lte: filters.endAt }
-                }),
-                ...( filters.action && { action: filters.action }),
-                ...( filters.action === TeamAction.ADD && {
-                  addedAt: { $gte: filters.startAt, $lte: filters.endAt }
-                }),
-                ...( filters.action === TeamAction.DELETE && {
-                  outAt: { $gte: filters.startAt, $lte: filters.endAt }
-                })
-              }
-            }
+  async filterTeamMovements(filters: FilterTeamMovementsDto) {
+    try {
+      return await this.teamModel.find({})
+      .populate({
+        path: 'moves.userId',
+        select: 'name email',
+        match: {
+          ...(filters.nameOfTheUser && { name: { $regex: filters.nameOfTheUser, $options: 'i' }}),
+          ...(filters.userEmail && { email: { $regex: filters.userEmail, $options: 'i' }}),
+        }
+      })
+      .select('name moves.action moves.addedAt moves.outAt')
+      .exec()
+      .then(function(results) {
+        return results.map( result => {
+          return {
+            name: result.name,
+            _id: result._id,
+            moves: result.moves.filter( move => 
+              move.userId !== null &&
+              (filters.action ? move.action === filters.action: true) &&
+              move.addedAt >= Number(filters.startAt) &&
+              move.outAt <= Number(filters.endAt)
+            ) 
           }
-        ),
-    })
-    .exec();
-
-    return result;
+        })
+      })
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   private updateUsersStatuses(ids: string[], states: boolean[]) {
