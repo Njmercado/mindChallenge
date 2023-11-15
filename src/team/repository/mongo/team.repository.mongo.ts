@@ -7,6 +7,7 @@ import { UpdateTeamDto } from "src/team/dto/update-team.dto";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { User } from "src/user/schemas/user.schema";
 import { FilterTeamMovementsDto } from "src/team-moves/dto/filter-team-movement.dto";
+import { FilterTeamDto } from "src/team/dto/filter-team.dto";
 
 @Injectable()
 export class TeamRepository {
@@ -23,7 +24,6 @@ export class TeamRepository {
     await this.teamModel.create({users: usersAsMongoIds, name});
 
     this.updateUsersStatuses(users, [])
-    // TODO: add event to team move
   }
 
   async findOneTeam(id: string) {
@@ -35,7 +35,6 @@ export class TeamRepository {
     code: number
   }> {
 
-    let message: string = "";
     const team = await this.teamModel.findById(teamId).exec();
     const {users, name} = updateTeamDto;
     if(users) {
@@ -134,8 +133,6 @@ export class TeamRepository {
 
       this.updateUserStatus(userId, false);
 
-      // TODO: add that user x has been deleted from team x into events
-
       return {
         message: `User ${userId} deleted from team ${team.name}`,
         code: 200,
@@ -200,6 +197,27 @@ export class TeamRepository {
         })
       })
     } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async filter(filters: FilterTeamDto) {
+    try {
+      return await this.teamModel.find({
+        ...(filters.name && { name: { $regex: filters.name, $options: 'i' }}),
+      })
+      .populate({
+        path: 'users',
+        match: {
+          ...(filters.userName && { name: { $regex: filters.userName, $options: 'i' } }),
+          ...(filters.userEmail && { email: {$regex: filters.userEmail, $options: 'i' }}),
+        },
+        select: 'name email role'
+      })
+      .select('users name')
+      .exec();
+    } catch(error) {
+      console.error(error)
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
