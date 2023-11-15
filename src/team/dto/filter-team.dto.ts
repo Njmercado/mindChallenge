@@ -11,12 +11,6 @@ export class FilterTeamDto {
   @ApiProperty({ required: false })
   userName: string;
 
-  @ApiProperty({ required: false, default: 0 })
-  startAt: number;
-
-  @ApiProperty({ required: false, default: Date.now()})
-  endAt: number;
-
-  @ApiProperty({ required: false, enum: TeamAction})
-  action: TeamAction;
+  @ApiProperty({ required: false })
+  userEmail: string;
 }
