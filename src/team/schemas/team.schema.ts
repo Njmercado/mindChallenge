@@ -8,15 +8,15 @@ export type TeamDocument = HydratedDocument<Team>;
 @Schema()
 export class Team {
   @Prop({ ref: 'User' })
-  users: Array<mongoose.Types.ObjectId>; 
+  users: Array<mongoose.Types.ObjectId>;
 
-  @Prop({required: true})
+  @Prop({ required: true })
   name: string;
 
   @Prop([{ type: TeamMove }])
   moves: Array<TeamMove>;
 
-  @Prop({ default: false})
+  @Prop({ default: false })
   disabled: boolean;
 
   addTeamMove: Function;
@@ -24,45 +24,51 @@ export class Team {
 
 export const TeamSchema = SchemaFactory.createForClass(Team);
 
-TeamSchema.methods.addTeamMove = async function(
-  users: mongoose.Types.ObjectId[], 
+TeamSchema.methods.addTeamMove = async function (
+  users: mongoose.Types.ObjectId[],
   actionType: TeamAction,
 ) {
   users.forEach(async user => {
     const teamMove = new TeamMove()
-      teamMove.userId = user,
+    teamMove.userId = user,
       teamMove.action = actionType,
-    this.moves.push(teamMove);
+      this.moves.push(teamMove);
   });
 }
 
-TeamSchema.pre('save', async function(next) {
+TeamSchema.pre('save', async function (next) {
+  const prevValue: Team = await this.model().findById(this._id).exec();
+  const isNewDocument = () => !prevValue;
 
-  var prevValue: Team;
-
-  if(this._id) {
-    prevValue = await this.model().findById(this._id).exec();
-  }
-
-  // if new users where added
-  if(this.getChanges().$push) {
+  if(isNewDocument()) {
     this.addTeamMove(
-      this.getChanges().$push.users.$each,
+      this.getChanges().$set.users,
       TeamAction.ADD,
     );
   }
+  else if(this._id) {
 
-  if(this.getChanges().$set) {
-    const currentUsers = this.getChanges().$set.users.map(x => x.toString());
+    // if new users where added
+    if (this.getChanges().$push) {
+      this.addTeamMove(
+        this.getChanges().$push.users.$each,
+        TeamAction.ADD,
+      );
+    }
 
-    const deletedUsers = prevValue.users.filter(user => 
-      !currentUsers.includes(user.toString())
-    );
+    // if new users where deleted
+    if (this.getChanges().$set) {
+      const currentUsers = this.getChanges().$set.users.map(x => x.toString());
 
-    this.addTeamMove(
-      deletedUsers,
-      TeamAction.DELETE
-    );
+      const deletedUsers = prevValue.users.filter(user =>
+        !currentUsers.includes(user.toString())
+      );
+
+      this.addTeamMove(
+        deletedUsers,
+        TeamAction.DELETE
+      );
+    }
   }
 
   next();
