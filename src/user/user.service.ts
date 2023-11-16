@@ -12,10 +12,33 @@ export class UserService {
 
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto) {
-    return this.userModel.create(createUserDto);
+    try {
+
+      const userNotExist = !(await this.findOneByEmail(createUserDto.email));
+
+      if (userNotExist) {
+        const result = await this.userModel.create(createUserDto);
+
+        if (result) {
+          return {
+            message: "User created successfully",
+            code: HttpStatus.OK,
+            data: result._id
+          }
+        }
+      } else {
+        return {
+          message:  `User with email ${createUserDto.email} already exists`,
+          code: HttpStatus.FOUND,
+        }
+      }
+      this.userModel.create(createUserDto);
+    } catch (err) {
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async findAll(): Promise<any[]> {
@@ -23,7 +46,7 @@ export class UserService {
   }
 
   async findOne(id: string): Promise<any> {
-    return this.userModel.findById({_id: id})
+    return this.userModel.findById({ _id: id })
       .select('-password')
       .exec();
   }
@@ -38,11 +61,11 @@ export class UserService {
     try {
       const user = await this.userModel.findById(id).exec();
 
-      if(user) {
+      if (user) {
         updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
         const response = await this.userModel.findByIdAndUpdate(id, updateUserDto).exec();
 
-        if(response) {
+        if (response) {
           return {
             message: "User updated successfully",
             code: HttpStatus.OK
@@ -61,22 +84,22 @@ export class UserService {
   }
 
   async remove(id: string) {
-    return this.userModel.deleteOne({_id: id}).exec();
+    return this.userModel.deleteOne({ _id: id }).exec();
   }
 
   async filter(filters: FilterUserDto): Promise<any> {
     try {
       return await this.userModel.find({
-        ...(filters.name && { name: { $regex: filters.name, $options: 'i' }}),
-        ...(filters.email && { email: { $regex: filters.email, $options: 'i' }}),
-        ...(filters.role && { role: filters.role}),
-        ...(filters.hasAssignedTeam && { hasAssignedTeam: filters.hasAssignedTeam}),
+        ...(filters.name && { name: { $regex: filters.name, $options: 'i' } }),
+        ...(filters.email && { email: { $regex: filters.email, $options: 'i' } }),
+        ...(filters.role && { role: filters.role }),
+        ...(filters.hasAssignedTeam && { hasAssignedTeam: filters.hasAssignedTeam }),
       })
-      .select('-password')
-      .exec();
+        .select('-password')
+        .exec();
     } catch (err) {
       console.error(err);
       throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  } 
+  }
 }
