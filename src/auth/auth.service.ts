@@ -21,7 +21,7 @@ export class AuthService {
       });
     }
 
-    const payload = { sub: user._id.toString(), email: user.email, password: user.password, role: user.role };
+    const payload = { sub: user._id.toString(), email: user.email, role: user.role };
     const token = {
       access_token: this.jwtService.sign(payload),
     };
