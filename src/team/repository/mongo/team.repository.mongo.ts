@@ -46,7 +46,12 @@ export class TeamRepository {
   }
 
   async findOneTeam(id: string) {
-    return this.teamModel.findById(id).exec();
+    return this.teamModel.findById(id)
+      .populate({
+        path: 'users',
+        select: "name email role",
+      })
+      .exec();
   }
 
   async updateTeam(teamId: string, updateTeamDto: UpdateTeamDto): Promise<{
@@ -111,16 +116,18 @@ export class TeamRepository {
     message: string,
     code: number,
   }> {
-    const user = await this.userModel.findById(userId).exec();
-    const sourceTeam = await this.teamModel.findById(fromTeam).exec();
-    const targetTeam = await this.teamModel.findById(toTeam).exec();
+    try {
+      const user = await this.userModel.findById(userId).exec();
+      const sourceTeam = await this.teamModel.findById(fromTeam).exec();
+      const targetTeam = await this.teamModel.findById(toTeam).exec();
 
-    if (user.hasAssignedTeam) {
-      return {
-        message: "Could not move user due this user has an assigned team",
-        code: HttpStatus.CONFLICT
+      if(!sourceTeam || !targetTeam) {
+        return {
+          message: "Team not found",
+          code: HttpStatus.NOT_FOUND,
+        }
       }
-    } else {
+
       const userIdToObjectId = this.helper.toMongoID(userId);
       sourceTeam.users.splice(
         sourceTeam.users.indexOf(userIdToObjectId),
@@ -137,6 +144,8 @@ export class TeamRepository {
         message: 'User moved successfully',
         code: HttpStatus.OK,
       }
+    } catch (err) {
+      throw new ExceptionsHandler(err);
     }
   }
 
