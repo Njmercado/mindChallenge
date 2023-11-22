@@ -3,10 +3,10 @@ import { AccountService } from './account.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Role } from 'src/user/entities/role.enum';
-import { Roles } from 'src/auth/decorator/roles.decotaror';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Role } from '../user/entities/role.enum';
+import { Roles } from '../auth/decorator/roles.decotaror';
 
 @ApiBearerAuth('access-token')
 @UseGuards(AuthGuard, RolesGuard)

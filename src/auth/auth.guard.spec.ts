@@ -1,7 +1,8 @@
 import { AuthGuard } from './auth.guard';
 import { JwtServiceMock } from './mocks/jwt.service.mock';
-import { USER_DATA, getValidToken } from './constants/auth.tests.constants';
+import { getValidToken } from './constants/auth.tests.constants';
 import { UnauthorizedException } from '@nestjs/common';
+import { USER_DATA } from '../user/contants/user.spec.contants';
 
 describe('AuthGuard', () => {
   let authGuard: AuthGuard;
@@ -36,12 +37,16 @@ describe('AuthGuard', () => {
     const context: any = { switchToHttp: () => ({ getRequest: () => request }) };
 
     jwtService.verifyAsync.mockReturnValue({
-      id: USER_DATA.id,
+      id: USER_DATA['id'],
       email: USER_DATA.email,
       role: USER_DATA.role,
     });
 
     expect(await authGuard.canActivate(context)).toBeTruthy();
-    expect(request['user']).toEqual(USER_DATA);
+    expect(request['user']).toEqual({
+      id: USER_DATA['id'],
+      email: USER_DATA.email,
+      role: USER_DATA.role,
+    });
   });
 });

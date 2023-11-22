@@ -9,7 +9,7 @@ import { User } from "../../../user/schemas/user.schema";
 import { FilterTeamMovementsDto } from "src/team-moves/dto/filter-team-movement.dto";
 import { FilterTeamDto } from "src/team/dto/filter-team.dto";
 import { ExceptionsHandler } from "@nestjs/core/exceptions/exceptions-handler";
-import { TeamMove } from "src/team-moves/schemas/team-moves.schema";
+import { TeamMove } from "../../../team-moves/schemas/team-moves.schema";
 
 @Injectable()
 export class TeamRepository {
