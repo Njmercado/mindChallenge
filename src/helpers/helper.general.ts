@@ -8,4 +8,8 @@ export class HelperGeneral {
   arrayIdsToMongoIds(ids: string[]): mongoose.Types.ObjectId[] {
     return ids.map(id => new mongoose.Types.ObjectId(id));
   }
+
+  arrayMongoIdsToString(ids: mongoose.Types.ObjectId[]): string[] {
+    return ids.map(id => id.toString());
+  }
 }
