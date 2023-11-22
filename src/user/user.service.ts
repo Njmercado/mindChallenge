@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterUserDto } from './dto/filter-user.dto';
 import * as bcrypt from 'bcrypt';
+import { Role } from './entities/role.enum';
 
 @Injectable()
 export class UserService {
@@ -31,7 +32,7 @@ export class UserService {
         }
       } else {
         return {
-          message:  `User with email ${createUserDto.email} already exists`,
+          message: `User with email ${createUserDto.email} already exists`,
           code: HttpStatus.FOUND,
         }
       }
@@ -45,7 +46,15 @@ export class UserService {
     return this.userModel.find({}).exec();
   }
 
-  async findOne(id: string): Promise<any> {
+  async findOne(id: string, request): Promise<any> {
+
+    if (id !== request.id && request.role === Role.USER) {
+      return {
+        message: "You dont have access to this resource, verify your role",
+        code: HttpStatus.UNAUTHORIZED
+      }
+    }
+
     return this.userModel.findById({ _id: id })
       .select('-password')
       .exec();
@@ -62,7 +71,6 @@ export class UserService {
       const user = await this.userModel.findById(id).exec();
 
       if (user) {
-        updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
         const response = await this.userModel.findByIdAndUpdate(id, updateUserDto).exec();
 
         if (response) {

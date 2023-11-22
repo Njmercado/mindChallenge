@@ -46,7 +46,7 @@ export class UserController {
     @Param('id') id: string,
     @Request() request: { user: any}
   ) {
-    return this.userService.findOne(id);
+    return this.userService.findOne(id, request);
   }
 
   @Roles([Role.ADMIN, Role.SUPER_ADMIN])

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -17,7 +17,7 @@ export class AuthService {
     if(isNotValid) {
       throw new UnauthorizedException({
         message: "Invalid credentials, please try again",
-        statusCode: 401,
+        statusCode: HttpStatus.NOT_FOUND,
       });
     }
 
