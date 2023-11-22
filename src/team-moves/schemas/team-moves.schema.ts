@@ -6,10 +6,15 @@ export type TeamMoveDocument = HydratedDocument<TeamMove>;
 
 @Schema()
 export class TeamMove {
+  @Prop({ref: 'Team'})
+  team: mongoose.Types.ObjectId;
+
   @Prop({ref: 'User'})
   userId: mongoose.Types.ObjectId;
+
   @Prop({ enum: TeamAction})
   action: string;
+
   @Prop({
     type: Number,
     default: function() {
@@ -17,7 +22,9 @@ export class TeamMove {
         Date.now() 
     } 
   })
+
   addedAt?: number;
+
   @Prop({
     type: Number,
     default: function() {
@@ -25,6 +32,7 @@ export class TeamMove {
         Date.now()
     } 
   })
+
   outAt?: number;
 }
 

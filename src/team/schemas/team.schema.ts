@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { TeamAction } from 'src/team-moves/entities/team-action.enum';
-import { TeamMove } from 'src/team-moves/schemas/team-moves.schema';
+import { TeamAction } from '../../team-moves/entities/team-action.enum';
+import { TeamMove, TeamMoveSchema } from '../../team-moves/schemas/team-moves.schema';
 
 export type TeamDocument = HydratedDocument<Team>;
 
@@ -12,9 +12,6 @@ export class Team {
 
   @Prop({ required: true })
   name: string;
-
-  @Prop([{ type: TeamMove }])
-  moves: Array<TeamMove>;
 
   @Prop({ default: false })
   disabled: boolean;
@@ -28,25 +25,28 @@ TeamSchema.methods.addTeamMove = async function (
   users: mongoose.Types.ObjectId[],
   actionType: TeamAction,
 ) {
-  users.forEach(async user => {
-    const teamMove = new TeamMove()
-    teamMove.userId = user,
-      teamMove.action = actionType,
-      this.moves.push(teamMove);
-  });
+  const TeamMoveModel = this.model(TeamMove.name);
+  for (const user of users) {
+    const team = new TeamMoveModel({
+      team: this._id,
+      userId: user,
+      action: actionType
+    });
+    await team.save();
+  }
 }
 
 TeamSchema.pre('save', async function (next) {
   const prevValue: Team = await this.model().findById(this._id).exec();
   const isNewDocument = () => !prevValue;
 
-  if(isNewDocument()) {
+  if (isNewDocument()) {
     this.addTeamMove(
       this.getChanges().$set.users,
       TeamAction.ADD,
     );
   }
-  else if(this._id) {
+  else if (this._id) {
 
     // if new users where added
     if (this.getChanges().$push) {

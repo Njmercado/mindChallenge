@@ -5,6 +5,7 @@ import { TeamRepository } from './repository/mongo/team.repository.mongo';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Team, TeamSchema } from './schemas/team.schema';
 import { User, UserSchema } from 'src/user/schemas/user.schema';
+import { TeamMove, TeamMoveSchema } from 'src/team-moves/schemas/team-moves.schema';
 
 @Module({
   imports: [
@@ -16,6 +17,10 @@ import { User, UserSchema } from 'src/user/schemas/user.schema';
       {
         name: User.name,
         schema: UserSchema
+      },
+      {
+        name: TeamMove.name,
+        schema: TeamMoveSchema
       }
     ]),
   ],
